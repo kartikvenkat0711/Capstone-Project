@@ -1,0 +1,11 @@
+# Capstone Project
+Ideas for my Capstone project
+
+Following are 3 ideas I find interesting enough to explore further:
+
+1. Soccer results prediction: Currently bookies use form and past results as an indicator to predict chances of a particular result for a team. But the accuracy of bookies' predictions have always been debatable. My goal would be to enhance the accuracy of the prediction by adding more variables to the model.
+
+2. US presidential election: Predicting the US presidential election based on states' voting patterns. I am looking into additional variables to include in the proposed model.
+
+3. Predicting probability of a cardiac arrest: Analyse the possibility of an individual having a cardiac arrest by analyzing his medical history,  lifestyle patterns and any other variables that might be good indicators of leading causes of cardiac arrests.
+
