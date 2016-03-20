@@ -99,3 +99,5 @@ y$product_tv <- ifelse(y$product_category == "TV",1,0)
 y$product_laptop <- ifelse(y$product_category == "Laptop",1,0)
 
 y$product_tablet <- ifelse(y$product_category == "Tablet",1,0)
+
+write.csv(y, file = "C:\\Springboard Data Science work\\Data wrangling task\\refine_clean.csv")
