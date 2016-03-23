@@ -3,8 +3,12 @@ titanic <- read_excel(path = "C:/Springboard Data Science work/Titanic project/t
 
 titanic$embarked[titanic$cabin == 'B28'] <- 'S'
 
+titanic$age[is.na(titanic$age)] <- 0
+
 age_mean <- mean(titanic$age)
 
-age_people <- filter(titanic, age != 'NA')
+age_mean
 
-age_people <- as.vector(age_people)
+titanic$age[titanic$age == 0] <- age_mean
+
+titanic$boat[is.na(titanic$boat)] <- 'NA'
