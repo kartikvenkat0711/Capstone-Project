@@ -1,0 +1,10 @@
+install.packages('ggthemes', dependencies = TRUE)
+
+library(ggthemes)
+
+pf <- read.csv('pseudo_facebook.tsv', sep = '\t')
+
+theme_set(theme_minimal(10))
+
+qplot(x = dob_day, data = pf) +
+  scale_x_discrete(breaks=1:31)
