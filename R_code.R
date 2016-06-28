@@ -28,6 +28,16 @@ bankFull1 <- select(bankFull, -duration)
 
 View(bankFull1)
 
+## Split this dataset into training and testing
+
+set.seed(144)
+
+split <- sample.split(bankFull$y, SplitRatio = 0.8)
+
+bankTrain <- subset(bankFull, split == TRUE)
+
+bankTest <- subset(bankFull, split == FALSE)
+
 ## Load training data as new data frame
 
 bankTest <- read.csv("bank-additional.csv")
@@ -35,14 +45,16 @@ bankTest <- read.csv("bank-additional.csv")
 str(bankTest)
 
 ## Logistic regression model with marital and job as inputs
+ 
+model1 <- glm(y ~ ., data = bankTrain, family = binomial) ## Create model
 
-model1 <- glm(y ~ ., data = bankFull1, family = binomial)
+## summary(model1)
 
-summary(model1)
+predictBank <- predict(model1, type = "response", newdata = bankTest) ## Predict model parameters
 
-predictBank <- predict(model1, type = "response")
+## summary(predictBank)
 
-ROCRpred1 <- prediction(predictBank, bankFull1$y)
+ROCRpred1 <- prediction(predictBank, bankFull1$y) 
 
 ROCRperf1 <- performance(ROCRpred1, "tpr", "fpr")
 
@@ -52,13 +64,23 @@ ROCRauc1@y.values ## AUC keeping the missing values
 
 plot(ROCRperf1, colorize = TRUE)
 
+table(bankFull1$y, predictBank > 0.54)
+
+971/(971+3669) ## Sensitivity
+
+36094/(36094+454) ## Specificity
+
+971/(971+454) ## True positive rate
+
+3669/(36094+3669)
+
 ## End of prediction for data w/ missing values
 
 summary(predictBank)
 
 table(bankFull1$job, bankFull1$y)
 
-model3 <- glm(y ~ housing, data = bankFull1, family = binomial)
+model3 <- glm(y ~ year, data = bankFull1, family = binomial)
 
 summary(model3)
 
