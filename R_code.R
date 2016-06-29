@@ -15,6 +15,7 @@ library(mice)
 library(jsonlite)
 library(ROCR)
 library(xlsx)
+library(caTools)
 
 ## Load the full bank dataset
 
@@ -56,7 +57,7 @@ predictBank <- predict(model1, type = "response", newdata = bankTest) ## Predict
 
 ROCRpred1 <- prediction(predictBank, bankFull1$y) 
 
-ROCRperf1 <- performance(ROCRpred1, "tpr", "fpr")
+ROCRperf1 <- performance(ROCRpred1, "lift", "rpp")
 
 ROCRauc1 <- performance(ROCRpred1, "auc")
 
