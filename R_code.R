@@ -6,13 +6,14 @@ setwd('C:/R work/data_sets')
 
 #Load required packages
 
+install.packages("devtools")
+
 library(ggplot2)
 library(RColorBrewer)
 library(dplyr)
 library(tidyr)
 library(Hmisc)
 library(mice)
-library(jsonlite)
 library(ROCR)
 library(xlsx)
 library(caTools)
@@ -43,15 +44,25 @@ bankTest <- subset(bankFull, split == FALSE)
 
 bankTest <- read.csv("bank-additional.csv")
 
-str(bankTest)
+str(bankTrain)
+
+## Create new dataset with subset of variables
+
+bankTrain1 <- bankTrain[, 15:22]
+
+str(bankTrain1)
+
+bankTest1 <- bankTest[, 15:22]
+
+str(bankTest1)
 
 ## Logistic regression model with marital and job as inputs
- 
-model1 <- glm(y ~ ., data = bankTrain, family = binomial) ## Create model
+
+model1 <- glm(y ~ ., data = bankTrain1, family = binomial) ## Create model
 
 ## summary(model1)
 
-predictBank <- predict(model1, type = "response", newdata = bankTest) ## Predict model parameters
+predictBank <- predict(model1, type = "response", newdata = bankTest1) ## Predict model parameters
 
 ## summary(predictBank)
 
@@ -128,4 +139,3 @@ ROCRauc@y.values ## AUC w/o missing values
 plot(ROCRperf, colorize = TRUE)
 
 ## End of model for data w/o missing values
-
