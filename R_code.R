@@ -2,11 +2,9 @@
 
 getwd()
 
-setwd('C:/R work/data_sets')
+setwd('CC:/Springboard Data Science work/datasets')
 
 #Load required packages
-
-install.packages("devtools")
 
 library(ggplot2)
 library(RColorBrewer)
@@ -40,19 +38,13 @@ bankTrain <- subset(bankFull, split == TRUE)
 
 bankTest <- subset(bankFull, split == FALSE)
 
-## Load training data as new data frame
-
-bankTest <- read.csv("bank-additional.csv")
-
-str(bankTrain)
-
 ## Create new dataset with subset of variables
 
-bankTrain1 <- bankTrain[, 15:22]
+bankTrain1 <- bankTrain[, 12:23]
 
 str(bankTrain1)
 
-bankTest1 <- bankTest[, 15:22]
+bankTest1 <- bankTest[, 12:23]
 
 str(bankTest1)
 
@@ -65,6 +57,8 @@ model1 <- glm(y ~ ., data = bankTrain1, family = binomial) ## Create model
 predictBank <- predict(model1, type = "response", newdata = bankTest1) ## Predict model parameters
 
 ## summary(predictBank)
+
+bankFull1$y <- as.vector(bankFull1$y)
 
 ROCRpred1 <- prediction(predictBank, bankFull1$y) 
 
