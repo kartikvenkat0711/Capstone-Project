@@ -2,9 +2,11 @@
 
 getwd()
 
-setwd('CC:/Springboard Data Science work/datasets')
+setwd('C:/R work/data_sets')
 
 #Load required packages
+
+install.packages("devtools")
 
 library(ggplot2)
 library(RColorBrewer)
@@ -32,19 +34,19 @@ View(bankFull1)
 
 set.seed(144)
 
-split <- sample.split(bankFull$y, SplitRatio = 0.8)
+split <- sample.split(bankFull1$y, SplitRatio = 0.8)
 
-bankTrain <- subset(bankFull, split == TRUE)
+bankTrain <- subset(bankFull1, split == TRUE)
 
-bankTest <- subset(bankFull, split == FALSE)
+bankTest <- subset(bankFull1, split == FALSE)
 
 ## Create new dataset with subset of variables
 
-bankTrain1 <- bankTrain[, 12:23]
+bankTrain1 <- bankTrain[, 12:22]
 
 str(bankTrain1)
 
-bankTest1 <- bankTest[, 12:23]
+bankTest1 <- bankTest[, 12:22]
 
 str(bankTest1)
 
@@ -52,17 +54,21 @@ str(bankTest1)
 
 model1 <- glm(y ~ ., data = bankTrain1, family = binomial) ## Create model
 
-## summary(model1)
+summary(model1)
 
 predictBank <- predict(model1, type = "response", newdata = bankTest1) ## Predict model parameters
 
-## summary(predictBank)
+str(predictBank)
 
-bankFull1$y <- as.vector(bankFull1$y)
+bankTest1$y <- as.vector(bankTest1$y)
 
-ROCRpred1 <- prediction(predictBank, bankFull1$y) 
+summary(bankTest1$y)
 
-ROCRperf1 <- performance(ROCRpred1, "lift", "rpp")
+length(predictBank) == length(bankTest1$y)
+
+ROCRpred1 <- prediction(predictBank, bankTest1$y) 
+
+ROCRperf1 <- performance(ROCRpred1, "tpr", "fpr")
 
 ROCRauc1 <- performance(ROCRpred1, "auc")
 
@@ -70,15 +76,29 @@ ROCRauc1@y.values ## AUC keeping the missing values
 
 plot(ROCRperf1, colorize = TRUE)
 
-table(bankFull1$y, predictBank > 0.54)
+table(bankTest1$y, predictBank > 0.5)
 
-971/(971+3669) ## Sensitivity
+171/(171+757) ## Sensitivity
 
-36094/(36094+454) ## Specificity
+7223/(7223+87) ## Specificity
 
-971/(971+454) ## True positive rate
+171/(171+87) ## Precision
 
 3669/(36094+3669)
+
+(171+7223)/8238 ## Accuracy
+
+predictBank <- as.vector(predictBank)
+
+View(predictBank)
+
+bankTest2 <- mutate(bankTest1, predictBank)
+
+str(bankTest2)
+
+testOrder <- arrange(bankTest2, desc(predictBank))
+
+View(testOrder)
 
 ## End of prediction for data w/ missing values
 
