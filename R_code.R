@@ -2,11 +2,9 @@
 
 getwd()
 
-setwd('C:/R work/data_sets')
+setwd('C:/Springboard Data Science work/datasets')
 
 #Load required packages
-
-install.packages("devtools")
 
 library(ggplot2)
 library(RColorBrewer)
@@ -15,8 +13,28 @@ library(tidyr)
 library(Hmisc)
 library(mice)
 library(ROCR)
-library(xlsx)
 library(caTools)
+library(caret)
+
+## Install h2o
+
+if ("package:h2o" %in% search()) { detach("package:h2o", unload=TRUE) }
+
+if ("h2o" %in% rownames(installed.packages())) { remove.packages("h2o") }
+
+pkgs <- c("methods","statmod","stats","graphics","RCurl","jsonlite","tools","utils")
+
+for (pkg in pkgs) {
+  if (! (pkg %in% rownames(installed.packages()))) { install.packages(pkg) }
+}
+
+install.packages("h2o", type="source", repos=(c("http://h2o-release.s3.amazonaws.com/h2o/rel-turin/4/R")))
+
+## Load h2o
+
+library(h2o)
+
+localH2O = h2o.init(nthreads=-1) ## Initialize h2o instance
 
 ## Load the full bank dataset
 
@@ -28,7 +46,38 @@ View(bankFull)
 
 bankFull1 <- select(bankFull, -duration)
 
-View(bankFull1)
+str(bankFull1)
+
+colSums(is.na(bankFull1)) ## Test for missing values
+
+## Distribution of variables in dataset
+
+head(bankFull1)
+
+corBank <- cor(df.bankTest)
+
+View(corBank)
+
+corBank1 <- cor(df.hex$year, df.hex$y)
+
+View(corBank1)
+
+## How is the education variable distributed in this dataset?
+
+ggplot(bankFull1, aes(x = month, fill = y)) +
+  geom_bar(stat = "count", position = "dodge")
+  ##facet_grid(year ~ .)
+
+ggplot(bankFull1, aes(x = job, fill = y)) +
+  geom_bar(stat = "count", position = "dodge")
+##facet_grid(year ~ .)
+
+ggplot(bankFull1, aes(x = euribor3m, fill = y)) +
+  geom_histogram(binwidth = 5)
+##facet_grid(year ~ .)
+
+ggplot(bankFull1, aes(x = loan, fill = y)) +
+  geom_bar(stat = "count", position = "dodge")
 
 ## Split this dataset into training and testing
 
@@ -40,116 +89,48 @@ bankTrain <- subset(bankFull1, split == TRUE)
 
 bankTest <- subset(bankFull1, split == FALSE)
 
-## Create new dataset with subset of variables
+## Create glm model for training dataset
 
-bankTrain1 <- bankTrain[, 12:22]
+df.hex <- as.h2o(bankTrain)
 
-str(bankTrain1)
+df.bankTest <- as.h2o(bankTest) ## Convert test data in h20 frame object
 
-bankTest1 <- bankTest[, 12:22]
+cols <- c(1:21)
 
-str(bankTest1)
+model2 <- h2o.glm(y = "y", x = cols, training_frame = df.hex,
+                  family = "binomial", nfolds = 0, alpha = 0.5, lambda_search = FALSE)
 
-## Logistic regression model with marital and job as inputs
+summary(model2)
 
-model1 <- glm(y ~ ., data = bankTrain1, family = binomial) ## Create model
+## Predictions made for test set
 
-summary(model1)
+predictBank2 <- h2o.predict(model2, newdata = df.bankTest)
 
-predictBank <- predict(model1, type = "response", newdata = bankTest1) ## Predict model parameters
+View(predictBank2)
 
-str(predictBank)
+## Create Random Forest model
 
-bankTest1$y <- as.vector(bankTest1$y)
-
-summary(bankTest1$y)
-
-length(predictBank) == length(bankTest1$y)
-
-ROCRpred1 <- prediction(predictBank, bankTest1$y) 
-
-ROCRperf1 <- performance(ROCRpred1, "tpr", "fpr")
-
-ROCRauc1 <- performance(ROCRpred1, "auc")
-
-ROCRauc1@y.values ## AUC keeping the missing values
-
-plot(ROCRperf1, colorize = TRUE)
-
-table(bankTest1$y, predictBank > 0.5)
-
-171/(171+757) ## Sensitivity
-
-7223/(7223+87) ## Specificity
-
-171/(171+87) ## Precision
-
-3669/(36094+3669)
-
-(171+7223)/8238 ## Accuracy
-
-predictBank <- as.vector(predictBank)
-
-View(predictBank)
-
-bankTest2 <- mutate(bankTest1, predictBank)
-
-str(bankTest2)
-
-testOrder <- arrange(bankTest2, desc(predictBank))
-
-View(testOrder)
-
-## End of prediction for data w/ missing values
-
-summary(predictBank)
-
-table(bankFull1$job, bankFull1$y)
-
-model3 <- glm(y ~ year, data = bankFull1, family = binomial)
+model3 <- h2o.randomForest(y = "y", x = cols, training_frame = df.hex,
+              nfolds = 0)
 
 summary(model3)
 
-summary(bankFull1$job)
+## Prediction using Random Forest model
 
-bankFull2 <- bankFull1 %>%
-  arrange(marital) %>%
-  slice(1:41108)
+predictBank3 <- h2o.predict(model3, newdata = df.bankTest)
 
-table(bankFull3$job, bankFull3$y)
+View(predictBank3)
 
-summary(bankFull2$marital)
+## Create GBM model
 
-bankFull3 <- bankFull2 %>%
-  arrange(marital) %>%
-  slice(1:40787)
+model4 <- h2o.gbm(y = "y", x = cols, training_frame = df.hex, distribution = "bernoulli")
 
-View(bankFull3)
+summary(model4)
 
-summary(bankFull3$marital)
+gainLift <- h2o.gainsLift(model4, df.hex) ## Generate gain lift metrics
 
-## Model for data w/o missing values
+View(gainLift)
 
-model4 <- glm(y ~ ., data = bankFull3, family = binomial)
+predictBank4 <- h2o.predict(model4, newdata = df.bankTest)
 
-coef(summary(model4))
-
-predictTrain <- predict(model4, type = "response")
-
-table(bankFull3$y, predictTrain > 0.5)
-
-2053/(2053+2541) ## Sensitivity
-
-35650/(35650+543) ## Specificity
-
-ROCRpred <- prediction(predictTrain, bankFull3$y)
-
-ROCRperf <- performance(ROCRpred, "tpr", "fpr")
-
-ROCRauc <- performance(ROCRpred, "auc")
-
-ROCRauc@y.values ## AUC w/o missing values
-
-plot(ROCRperf, colorize = TRUE)
-
-## End of model for data w/o missing values
+View(predictBank4)
