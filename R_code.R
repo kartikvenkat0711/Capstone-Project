@@ -7,8 +7,6 @@ getwd()
 
 setwd('C:/R work/data_sets')
 
-setwd('C:/Users/Karthik/Documents/GitHub/Data-Science-Capstone-Project') ## Use this path when using personal PC
-
 #Load required packages
 
 library(ggplot2)
@@ -18,6 +16,7 @@ library(tidyr)
 library(Hmisc)
 library(mice)
 library(ROCR)
+library(xlsx)
 library(caTools)
 library(lattice)
 library(ellipse)
@@ -193,9 +192,21 @@ plot(bankHouNo$housing)
 ## We observe that the distributions are fairly the same for housing loan status
 ## and our result does not depend on housing loan status.
 
-ggplot(bankTrain, aes(x = y, y = age)) + ## Comparing age against personal loan status
-  geom_boxplot() +
-  facet_grid(. ~ loan)
+## Comparing age against personal loan status
+
+bankLoanYes <- bankTrain %>%
+  select(y, loan, age) %>%
+  filter(y == "yes")
+
+plot(bankLoanYes$loan)
+
+bankLoanNo <- bankTrain %>%
+  select(y, loan, age) %>%
+  filter(y == "no")
+
+plot(bankLoanNo$loan)
+
+## Distributions same for both values of dependent variable. No impact.
 
 ## Next we look at variables related to the last contact for the current campaign
 ## First we look at the mode of contact to see if it has any impact.
@@ -382,7 +393,7 @@ predictTrain <- h2o.predict(model1, newdata = df.bankTest)
 
 summary(predictTrain)
 
-1140/(7098 + 1140)
+1140/(7098 + 1140) * 100
 
 ## We see from the logistic model that it gives close to 15% of our customers as
 ## responding with a yes. This is better than the 11% that is the proportion
@@ -402,7 +413,7 @@ predictTrain1 <- h2o.predict(model2, newdata = df.bankTest)
 
 summary(predictTrain1)
 
-1034/(1034 + 7204)
+1034/(1034 + 7204) * 100
 
 ## We see from the RF model analysis that it gives close to 12.5% of our customers as
 ## responding with a yes. This is slightly better than the 11% that is the proportion
