@@ -7,6 +7,8 @@ getwd()
 
 setwd('C:/R work/data_sets')
 
+setwd('C:/Users/Karthik/Documents/GitHub/Data-Science-Capstone-Project') ## Use this path when using personal PC
+
 #Load required packages
 
 library(ggplot2)
@@ -16,7 +18,6 @@ library(tidyr)
 library(Hmisc)
 library(mice)
 library(ROCR)
-library(xlsx)
 library(caTools)
 library(lattice)
 library(ellipse)
